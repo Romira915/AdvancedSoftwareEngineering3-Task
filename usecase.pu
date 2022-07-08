@@ -1,18 +1,36 @@
-@startuml test
+@startuml
 
-title テスト用
+title 図書貸出システム
+' top to bottom direction
+left to right direction
 skinparam dpi 150
 
-' クラスAの定義
-class A {
-  +string field1
-  +void method1()
-}
-note right of A {
-  これが基本のクラス
-}
+(利用者登録) as userRegister
+(貸出手続) as borrowing
+(返却手続) as return
+(AV室予約) as roomReservation
+(ログインする) as login
 
-' クラス間の関係
-A <|-- B : 継承
-A <|-- C : 継承
+(登録ユーザ一覧表示) as showAllUser
+(貸出中ユーザ一覧表示) as showBorrowingUser
+
+:一般: as user
+:学生: as st
+:管理者: as admin
+
+user <|- st
+
+borrowing ..> login :<<Include>>
+return ..> login :<<Include>>
+roomReservation ..> login :<<Include>>
+
+user -- userRegister
+user -- borrowing
+user -- return
+
+st - roomReservation
+
+admin - showAllUser
+admin - showBorrowingUser
+
 @enduml
