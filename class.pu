@@ -1,0 +1,23 @@
+@startuml
+
+title 図書貸出システム
+skinparam dpi 150
+
+class User
+class DtudentUser
+class Administrator
+
+class UserList
+class UserManager
+
+User <|- studentUser
+
+User : login()
+User : register()
+User : borrowing()
+
+UserList : userList: User[]
+UserList : search()
+UserList : getUserList()
+
+@enduml
