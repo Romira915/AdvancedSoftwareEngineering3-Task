@@ -4,17 +4,23 @@ title 図書貸出システム
 skinparam dpi 150
 
 class User
-class DtudentUser
+class StudentUser
 class Administrator
 
 class UserList
 class UserManager
 
-User <|- studentUser
+User <|- StudentUser
 
 User : login()
 User : register()
 User : borrowing()
+User : return()
+
+StudentUser : roomReservation()
+
+Administrator : showAllUser()
+Administrator : showBorrowingUser()
 
 UserList : userList: User[]
 UserList : search()
