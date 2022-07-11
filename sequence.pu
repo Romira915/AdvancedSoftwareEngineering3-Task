@@ -90,11 +90,11 @@ participant LibraryLendSystem
 user -> LoginDisplay : ログイン情報を入力(userid, password)
 ref over LoginDisplay, LoginProcess : Login
 
-user -> LendingDisplay : 借りる本のidを入力(id)
+user -> LendingDisplay : 借りる本のidを入力(bookId)
 LendingDisplay -> LibraryLendSystem : 貸出手続(bookId)
 LoginProcess <- LibraryLendSystem : getLoginUser(user)
 
-LibraryLendSystem -> BookStockList : book=getBook(id)
+LibraryLendSystem -> BookStockList : book=getBook(bookId)
 LibraryLendSystem -> Book : onLoan=onLoan(): Bool
 
 alt onLoan = true
@@ -119,9 +119,15 @@ participant ログイン処理 as LoginProcess
 participant 返却手続画面 as LendingDisplay
 participant LibraryLendSystem
 
-user -> LoginDisplay : ログイン情報を入力(id, password)
-ref over LoginDisplay : Login
+user -> LoginDisplay : ログイン情報を入力(userId, password)
+ref over LoginDisplay, LoginProcess : Login
 
-LendingDisplay -> LibraryLendSystem
+LendingDisplay -> LibraryLendSystem : getLendedList()
+LendingDisplay -> LendingDisplay : showLendedList()
+
+user -> LendingDisplay : 返却する本を選択(bookId)
+LendingDisplay -> LibraryLendSystem : 返却手続(bookId)
+LibraryLendSystem -> BookStockList : book=getBook(bookId)
+LibraryLendSystem -> Book : returnBook()
 
 @enduml
