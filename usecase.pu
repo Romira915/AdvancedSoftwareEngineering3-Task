@@ -1,4 +1,4 @@
-@startuml
+@startuml 図書貸出システム
 
 title 図書貸出システム
 ' top to bottom direction

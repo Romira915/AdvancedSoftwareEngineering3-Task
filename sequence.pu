@@ -1,0 +1,127 @@
+@startuml 利用者登録
+
+title 利用者登録
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 一般 as user
+participant 利用者登録画面 as UseDisplay
+participant 利用者登録処理 as UseProcess
+participant User
+participant UserList
+
+user -> UseDisplay : 利用者情報を入力(name, password)
+activate UseDisplay
+
+UseDisplay -> UseProcess : 利用者登録する(name, password)
+activate UseProcess
+
+UseProcess -> User : user=createUser(name, password): User
+activate User
+
+User -> EncryptionProcess : passHash=hash(str): hashStr
+User -> UUID : id=newUUID(): UUID
+UseProcess <-- User : User
+deactivate User
+
+UseProcess -> UserList : addUser(user)
+
+UseDisplay <- UseProcess : moveMembershipPage()
+deactivate UseProcess
+
+@enduml
+
+@startuml ログインする
+
+title ログインする
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 一般 as user
+participant ログイン画面 as LoginDisplay
+participant ログイン処理 as LoginProcess
+participant UserList
+
+user -> LoginDisplay : ログイン情報を入力(id, password)
+
+group Login
+    activate LoginDisplay
+
+    LoginDisplay -> LoginProcess : ログインする(id, password)
+    activate LoginProcess 
+
+    LoginProcess -> UserList : user=getUser(id): User
+
+    LoginProcess -> User : isOk=LoginValidation(password): Bool
+    activate User
+    User -> EncryptionProcess : passHash=hash(str): hashStr
+    LoginProcess <-- User : 
+    deactivate User
+
+    deactivate UserList
+
+    alt isOk = true
+        LoginDisplay <- LoginProcess : moveMembershipPage()
+    else 
+        LoginDisplay <- LoginProcess : showErrorMessage()
+    end
+
+    deactivate LoginProcess
+    deactivate LoginDisplay
+end
+
+@enduml
+
+@startuml 貸出手続
+
+title 貸出手続
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 一般 as user
+participant ログイン画面 as LoginDisplay
+participant ログイン処理 as LoginProcess
+participant 貸出手続画面 as LendingDisplay
+participant LibraryLendSystem
+
+user -> LoginDisplay : ログイン情報を入力(userid, password)
+ref over LoginDisplay, LoginProcess : Login
+
+user -> LendingDisplay : 借りる本のidを入力(id)
+LendingDisplay -> LibraryLendSystem : 貸出手続(bookId)
+LoginProcess <- LibraryLendSystem : getLoginUser(user)
+
+LibraryLendSystem -> BookStockList : book=getBook(id)
+LibraryLendSystem -> Book : onLoan=onLoan(): Bool
+
+alt onLoan = true
+    LibraryLendSystem -> LendingDisplay : showErrorMessage()
+else 
+    LibraryLendSystem -> Book : setLoanByUser(userId)
+    LibraryLendSystem -> LendingDisplay : moveLendingCompletedPage()
+end
+
+@enduml 
+
+@startuml 返却手続
+
+title 返却手続
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 一般 as user
+participant ログイン画面 as LoginDisplay
+participant ログイン処理 as LoginProcess
+participant 返却手続画面 as LendingDisplay
+participant LibraryLendSystem
+
+user -> LoginDisplay : ログイン情報を入力(id, password)
+ref over LoginDisplay : Login
+
+LendingDisplay -> LibraryLendSystem
+
+@enduml
