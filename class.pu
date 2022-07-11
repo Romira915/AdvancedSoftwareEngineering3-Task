@@ -32,7 +32,6 @@ Administrator : +showBorrowingUser()
 UserList : -userList: User[]
 UserList : +search()
 UserList : +getUserList()
-UserList : +createUser()
 
 
 
