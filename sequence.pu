@@ -85,22 +85,31 @@ actor 一般 as user
 participant ログイン画面 as LoginDisplay
 participant ログイン処理 as LoginProcess
 participant 貸出手続画面 as LendingDisplay
+participant バーコードリーダー as BarcodeReader
 participant LibraryLendSystem
 
 user -> LoginDisplay : ログイン情報を入力(userid, password)
 ref over LoginDisplay, LoginProcess : Login
 
-user -> LendingDisplay : 借りる本のidを入力(bookId)
+user -> LendingDisplay : 貸出手続開始()
+LendingDisplay -> BarcodeReader : read()
+activate BarcodeReader
+user -> BarcodeReader : 借りる本のバーコードを読み取る()
+LendingDisplay <-- BarcodeReader
+deactivate
+
 LendingDisplay -> LibraryLendSystem : 貸出手続(bookId)
-LoginProcess <- LibraryLendSystem : getLoginUser(user)
+LoginProcess <- LibraryLendSystem : getLoginUser()
 
 LibraryLendSystem -> BookStockList : book=getBook(bookId)
-LibraryLendSystem -> Book : onLoan=onLoan(): Bool
+LibraryLendSystem -> Book : isLoan=isLoan(): Bool
 
-alt onLoan = true
+alt isLoan = true
     LibraryLendSystem -> LendingDisplay : showErrorMessage()
 else 
+    LibraryLendSystem -> Book : lock()
     LibraryLendSystem -> Book : setLoanByUser(userId)
+    LibraryLendSystem -> Book : unlock()
     LibraryLendSystem -> LendingDisplay : moveLendingCompletedPage()
 end
 
@@ -118,16 +127,52 @@ participant ログイン画面 as LoginDisplay
 participant ログイン処理 as LoginProcess
 participant 返却手続画面 as LendingDisplay
 participant LibraryLendSystem
+participant User
 
 user -> LoginDisplay : ログイン情報を入力(userId, password)
 ref over LoginDisplay, LoginProcess : Login
 
-LendingDisplay -> LibraryLendSystem : getLendedList()
+user -> LendingDisplay : 返却手続開始()
+LoginProcess <- LendingDisplay : getLoginUser()
+
+LendingDisplay -> User : getLendedList()
 LendingDisplay -> LendingDisplay : showLendedList()
 
-user -> LendingDisplay : 返却する本を選択(bookId)
+user -> LendingDisplay : 返却する本を選択()
 LendingDisplay -> LibraryLendSystem : 返却手続(bookId)
 LibraryLendSystem -> BookStockList : book=getBook(bookId)
 LibraryLendSystem -> Book : returnBook()
+
+@enduml
+
+@startuml AV室予約
+
+title AV室予約
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 一般 as user
+participant ログイン画面 as LoginDisplay
+participant ログイン処理 as LoginProcess
+participant AV室予約画面 as RoomReservationDisplay
+participant RoomReservationSystem
+
+user -> LoginDisplay : ログイン情報を入力(userId, password)
+ref over LoginDisplay, LoginProcess : Login
+
+RoomReservationDisplay -> RoomReservationSystem : getRoomList()
+RoomReservationDisplay -> RoomReservationDisplay : showRoom()
+
+user -> RoomReservationDisplay : 予約するAV室を選択()
+RoomReservationDisplay -> RoomReservationSystem : AV室予約手続(roomId)
+LoginProcess <- RoomReservationSystem : getLoginUser()
+RoomReservationSystem -> RoomList : getRoom(roomId)
+RoomReservationSystem -> Room : roomStatus=getStatus(): RoomStatus
+
+alt roomStatus=Free
+    RoomReservationSystem -> Room : reserve(userId)
+else
+    RoomReservationDisplay <-- RoomReservationSystem : showReservedMessage()
 
 @enduml
