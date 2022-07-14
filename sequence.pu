@@ -102,16 +102,16 @@ LendingDisplay -> LibraryLendSystem : 貸出手続(bookId)
 LoginProcess <- LibraryLendSystem : getLoginUser()
 
 LibraryLendSystem -> BookStockList : book=getBook(bookId)
-LibraryLendSystem -> Book : isLoan=isLoan(): Bool
 
+LibraryLendSystem -> Book : lock()
+LibraryLendSystem -> Book : isLoan=isLoan(): Bool
 alt isLoan = true
     LibraryLendSystem -> LendingDisplay : showErrorMessage()
 else 
-    LibraryLendSystem -> Book : lock()
     LibraryLendSystem -> Book : setLoanByUser(userId)
-    LibraryLendSystem -> Book : unlock()
     LibraryLendSystem -> LendingDisplay : moveLendingCompletedPage()
 end
+LibraryLendSystem -> Book : unlock()
 
 @enduml 
 
@@ -161,18 +161,55 @@ participant RoomReservationSystem
 user -> LoginDisplay : ログイン情報を入力(userId, password)
 ref over LoginDisplay, LoginProcess : Login
 
-RoomReservationDisplay -> RoomReservationSystem : getRoomList()
+RoomReservationDisplay -> RoomReservationSystem : getVacantRoomList()
 RoomReservationDisplay -> RoomReservationDisplay : showRoom()
 
 user -> RoomReservationDisplay : 予約するAV室を選択()
 RoomReservationDisplay -> RoomReservationSystem : AV室予約手続(roomId)
 LoginProcess <- RoomReservationSystem : getLoginUser()
 RoomReservationSystem -> RoomList : getRoom(roomId)
-RoomReservationSystem -> Room : roomStatus=getStatus(): RoomStatus
 
+RoomReservationSystem -> Room : lock()
+RoomReservationSystem -> Room : roomStatus=getStatus(): RoomStatus
 alt roomStatus=Free
     RoomReservationSystem -> Room : reserve(userId)
 else
     RoomReservationDisplay <-- RoomReservationSystem : showReservedMessage()
+end
+RoomReservationSystem -> Room : unlock()
+
+@enduml
+
+@startuml 登録ユーザ一覧表示
+
+title 登録ユーザ一覧表示
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 管理者 as admin
+participant 管理画面 as adminDisplay
+participant UserList
+
+admin -> adminDisplay : 登録ユーザ一覧表示を選択()
+adminDisplay -> UserList : getUserList()
+adminDisplay -> adminDisplay : showUserList()
+
+@enduml
+
+@startuml 貸出中ユーザ一覧表示
+
+title 貸出中ユーザ一覧表示
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 管理者 as admin
+participant 管理画面 as adminDisplay
+participant UserList
+
+admin -> adminDisplay : 貸出中ユーザ一覧表示を選択()
+adminDisplay -> UserList : getOnLoanUserList()
+adminDisplay -> adminDisplay : showUserList()
 
 @enduml
