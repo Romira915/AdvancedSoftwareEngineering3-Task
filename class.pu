@@ -22,7 +22,7 @@ class UUID {
 
 
 package controller {
-    class UserController {
+    class UserRegisterController {
         -userModel: UserModel
         -userRegisterView: UserRegisterView
         +onClickUserRegister(name, password)
@@ -102,7 +102,11 @@ package view {
     class BookLendView {
         +showLendErrorMessage()
         +moveLendCompletedPage()
+    }
+
+    class BookReturnView {
         +showLendedList(lendedList)
+        +moveReturnCompletedPage()
     }
 
     class RoomReservationView {
@@ -156,5 +160,25 @@ package entity {
 
     entity Administrator
 }
+
+UserModel "1" -- "1..*" User
+BookModel "1" -- "1..*" Book
+RoomReservationModel "1" -- "1..*" Room
+
+UserRegisterController x-- UserModel
+UserRegisterController x-- UserRegisterView
+LoginController x-- UserModel
+LoginController x-- LoginView
+BookLendController x-- BookModel
+BookLendController x-- BookLendView
+BookReturnController x-- BookModel
+BookReturnController x-- BookReturnView
+RoomReservationController x-- RoomReservationModel
+RoomReservationController x-- RoomReservationView
+AdminController x-- UserModel
+AdminController x-- AdminView
+
+User x-- EncryptionService
+User x-- UUID
 
 @enduml

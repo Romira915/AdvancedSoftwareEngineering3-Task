@@ -6,15 +6,15 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
-participant UserController
+participant UserRegisterController
 participant UserModel
 participant UserRegisterView
 participant User
 
-user -> UserController : onClickUserRegister(name, password)
+user -> UserRegisterController : onClickUserRegister(name, password)
 
-activate UserController
-UserController -> UserModel : userRegister(name, password)
+activate UserRegisterController
+UserRegisterController -> UserModel : userRegister(name, password)
 
 activate UserModel
 UserModel -> User : user=newUser(name, password)
@@ -26,11 +26,11 @@ UserModel <-- User
 deactivate User
 
 UserModel -> UserModel : appendUser(user)
-UserController <-- UserModel
+UserRegisterController <-- UserModel
 deactivate UserModel
 
-UserRegisterView <-- UserController : moveMembershipPage()
-deactivate UserController
+UserRegisterView <-- UserRegisterController : moveMembershipPage()
+deactivate UserRegisterController
 
 @enduml
 
@@ -140,7 +140,7 @@ participant LoginController
 participant UserModel
 participant BookReturnController
 participant BookModel
-participant BookLendView
+participant BookReturnView
 participant User
 
 user -> LoginController : onClickLogin(userId, password)
@@ -158,7 +158,7 @@ BookModel -> User : lendedList=getLendedList()
 BookReturnController <-- BookModel
 deactivate BookModel
 
-BookReturnController -> BookLendView : showLendedList(lendedList)
+BookReturnController -> BookReturnView : showLendedList(lendedList)
 
 user -> BookReturnController : selectReturnBook()
 BookReturnController -> BookModel : returnBook(bookId)
@@ -166,7 +166,10 @@ BookReturnController -> BookModel : returnBook(bookId)
 activate BookModel
 BookModel -> BookModel : book=getBook(bookId)
 BookModel -> Book : returnBook()
+BookReturnController <-- BookModel
 deactivate BookModel
+
+BookReturnController -> BookReturnView : moveReturnCompletedPage()
 
 @enduml
 
