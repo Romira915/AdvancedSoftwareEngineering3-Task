@@ -120,6 +120,7 @@ package entity {
     }
 
     entity Room {
+        -reservingUser: Option<UUID>
         +lock()
         +unlock()
         +getStatus() : RoomStatus
@@ -199,6 +200,7 @@ Room -- RoomStatus
 UserModel -- Result
 Client -- Option
 Book -- Option
+Room -- Option
 BookModel -- BarcodeReader
 
 @enduml
