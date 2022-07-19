@@ -6,29 +6,31 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
-participant 利用者登録画面 as UseDisplay
-participant 利用者登録処理 as UseProcess
+participant UserController
+participant UserModel
+participant UserRegisterView
 participant User
-participant UserList
 
-user -> UseDisplay : 利用者情報を入力(name, password)
-activate UseDisplay
+user -> UserController : onClickUserRegister(name, password)
 
-UseDisplay -> UseProcess : 利用者登録する(name, password)
-activate UseProcess
+activate UserController
+UserController -> UserModel : userRegister(name, password)
 
-UseProcess -> User : user=createUser(name, password): User
+activate UserModel
+UserModel -> User : user=newUser(name, password)
+
 activate User
-
-User -> EncryptionProcess : passHash=hash(str): hashStr
+User -> EncryptionService : passHash=hash(str): String
 User -> UUID : id=newUUID(): UUID
-UseProcess <-- User : User
+UserModel <-- User
 deactivate User
 
-UseProcess -> UserList : addUser(user)
+UserModel -> UserModel : appendUser(user)
+UserController <-- UserModel
+deactivate UserModel
 
-UseDisplay <- UseProcess : moveMembershipPage()
-deactivate UseProcess
+UserRegisterView <-- UserController : moveMembershipPage()
+deactivate UserController
 
 @enduml
 
@@ -40,36 +42,36 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
-participant ログイン画面 as LoginDisplay
-participant ログイン処理 as LoginProcess
-participant UserList
+participant LoginController
+participant UserModel
+participant LoginView
 
-user -> LoginDisplay : ログイン情報を入力(id, password)
+user -> LoginController : onClickLogin(id, password)
 
 group Login
-    activate LoginDisplay
+    activate LoginController
+    LoginController -> UserModel : login(id, password)
 
-    LoginDisplay -> LoginProcess : ログインする(id, password)
-    activate LoginProcess 
+    activate UserModel 
+    UserModel -> UserModel : user=getUser(id): User
+    UserModel -> User : isOk=LoginValidation(password): Bool
 
-    LoginProcess -> UserList : user=getUser(id): User
-
-    LoginProcess -> User : isOk=LoginValidation(password): Bool
     activate User
-    User -> EncryptionProcess : passHash=hash(str): hashStr
-    LoginProcess <-- User : 
+    User -> EncryptionService : passHash=hash(str): String
+    UserModel <-- User
+    LoginController <-- UserModel
     deactivate User
 
-    deactivate UserList
+    deactivate UserModel
 
     alt isOk = true
-        LoginDisplay <- LoginProcess : moveMembershipPage()
+        LoginView <- LoginController : moveMembershipPage()
     else 
-        LoginDisplay <- LoginProcess : showErrorMessage()
+        LoginView <- LoginController : showLoginErrorMessage()
     end
 
-    deactivate LoginProcess
-    deactivate LoginDisplay
+    deactivate LoginController
+    deactivate LoginView
 end
 
 @enduml
@@ -82,36 +84,47 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
-participant ログイン画面 as LoginDisplay
-participant ログイン処理 as LoginProcess
-participant 貸出手続画面 as LendingDisplay
-participant バーコードリーダー as BarcodeReader
-participant LibraryLendSystem
+participant LoginController
+participant UserModel
+participant BookLendController
+participant BookModel
+participant BookLendView
+participant BarcodeReader
 
-user -> LoginDisplay : ログイン情報を入力(userid, password)
-ref over LoginDisplay, LoginProcess : Login
+user -> LoginController : onClickLogin(userid, password)
+ref over UserModel, LoginController : Login
 
-user -> LendingDisplay : 貸出手続開始()
-LendingDisplay -> BarcodeReader : read()
+user -> BookLendController : onClickLend()
+
+activate BookLendController
+BookLendController -> BookModel : lend()
+
+activate BookModel
+BookModel -> BarcodeReader : bookId=read() : UUID
+
 activate BarcodeReader
-user -> BarcodeReader : 借りる本のバーコードを読み取る()
-LendingDisplay <-- BarcodeReader
+user -> BarcodeReader : readBook()
+BookModel <-- BarcodeReader
 deactivate
 
-LendingDisplay -> LibraryLendSystem : 貸出手続(bookId)
-LoginProcess <- LibraryLendSystem : getLoginUser()
+UserModel <- BookModel : getMe() : User
 
-LibraryLendSystem -> BookStockList : book=getBook(bookId)
+BookModel -> BookModel : book=getBook(bookId)
 
-LibraryLendSystem -> Book : lock()
-LibraryLendSystem -> Book : isLoan=isLoan(): Bool
+BookModel -> Book : lock()
+BookModel -> Book : isLoan=isLoan(): Bool
 alt isLoan = true
-    LibraryLendSystem -> LendingDisplay : showErrorMessage()
+    BookModel -> Book : unlock()
+    BookLendController <-- BookModel
+    BookLendController -> BookLendView : showLendErrorMessage()
 else 
-    LibraryLendSystem -> Book : setLoanByUser(userId)
-    LibraryLendSystem -> LendingDisplay : moveLendingCompletedPage()
+    BookModel -> Book : setLendByUser(userId)
+    BookModel -> Book : unlock()
+
+    BookLendController <-- BookModel
+    BookLendController -> BookLendView : moveLendCompletedPage()
 end
-LibraryLendSystem -> Book : unlock()
+deactivate BookModel
 
 @enduml 
 
@@ -123,25 +136,37 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
-participant ログイン画面 as LoginDisplay
-participant ログイン処理 as LoginProcess
-participant 返却手続画面 as LendingDisplay
-participant LibraryLendSystem
+participant LoginController
+participant UserModel
+participant BookReturnController
+participant BookModel
+participant BookLendView
 participant User
 
-user -> LoginDisplay : ログイン情報を入力(userId, password)
-ref over LoginDisplay, LoginProcess : Login
+user -> LoginController : onClickLogin(userId, password)
+ref over UserModel, LoginController : Login
 
-user -> LendingDisplay : 返却手続開始()
-LoginProcess <- LendingDisplay : getLoginUser()
+user -> BookReturnController : onClickReturnBook()
 
-LendingDisplay -> User : getLendedList()
-LendingDisplay -> LendingDisplay : showLendedList()
+activate BookReturnController
+BookReturnController -> BookModel : getLendedList()
 
-user -> LendingDisplay : 返却する本を選択()
-LendingDisplay -> LibraryLendSystem : 返却手続(bookId)
-LibraryLendSystem -> BookStockList : book=getBook(bookId)
-LibraryLendSystem -> Book : returnBook()
+activate BookModel
+UserModel <- BookModel : getMe() : User
+
+BookModel -> User : lendedList=getLendedList()
+BookReturnController <-- BookModel
+deactivate BookModel
+
+BookReturnController -> BookLendView : showLendedList(lendedList)
+
+user -> BookReturnController : selectReturnBook()
+BookReturnController -> BookModel : returnBook(bookId)
+
+activate BookModel
+BookModel -> BookModel : book=getBook(bookId)
+BookModel -> Book : returnBook()
+deactivate BookModel
 
 @enduml
 
@@ -153,30 +178,43 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
-participant ログイン画面 as LoginDisplay
-participant ログイン処理 as LoginProcess
-participant AV室予約画面 as RoomReservationDisplay
-participant RoomReservationSystem
+participant LoginController
+participant UserModel
+participant RoomReservationController
+participant RoomReservationModel
+participant RoomReservationView
 
-user -> LoginDisplay : ログイン情報を入力(userId, password)
-ref over LoginDisplay, LoginProcess : Login
+user -> LoginController : onClicklogin(userId, password)
+ref over UserModel, LoginController : Login
 
-RoomReservationDisplay -> RoomReservationSystem : getVacantRoomList()
-RoomReservationDisplay -> RoomReservationDisplay : showRoom()
+user -> RoomReservationController : onClickRoomReservation()
 
-user -> RoomReservationDisplay : 予約するAV室を選択()
-RoomReservationDisplay -> RoomReservationSystem : AV室予約手続(roomId)
-LoginProcess <- RoomReservationSystem : getLoginUser()
-RoomReservationSystem -> RoomList : getRoom(roomId)
+activate RoomReservationController
+RoomReservationController -> RoomReservationModel : getVacantRoomList()
+RoomReservationController -> RoomReservationView : showRoom()
 
-RoomReservationSystem -> Room : lock()
-RoomReservationSystem -> Room : roomStatus=getStatus(): RoomStatus
-alt roomStatus=Free
-    RoomReservationSystem -> Room : reserve(userId)
+user -> RoomReservationController : selectRoom()
+RoomReservationController -> RoomReservationModel : roomReservation(roomId)
+
+activate RoomReservationModel
+LoginController <- RoomReservationModel : getLoginUser()
+RoomReservationModel -> RoomReservationModel : getRoom(roomId)
+
+RoomReservationModel -> Room : lock()
+RoomReservationModel -> Room : roomStatus=getStatus(): RoomStatus
+alt roomStatus=Vacant
+    RoomReservationModel -> Room : reserve(userId)
+    RoomReservationModel -> Room : unlock()
+
+    RoomReservationController <-- RoomReservationModel
+    RoomReservationController -> RoomReservationView : moveReservedPage()
 else
-    RoomReservationDisplay <-- RoomReservationSystem : showReservedMessage()
+    RoomReservationModel -> Room : unlock()
+
+    RoomReservationController <-- RoomReservationModel
+    RoomReservationController -> RoomReservationView : showReservedMessage()
 end
-RoomReservationSystem -> Room : unlock()
+deactivate RoomReservationModel
 
 @enduml
 
@@ -188,12 +226,15 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 管理者 as admin
-participant 管理画面 as adminDisplay
-participant UserList
+participant adminController
+participant UserModel
+participant adminView
 
-admin -> adminDisplay : 登録ユーザ一覧表示を選択()
-adminDisplay -> UserList : getUserList()
-adminDisplay -> adminDisplay : showUserList()
+admin -> adminController : onClickUserList()
+
+activate adminController
+adminController -> UserModel : userList=getUserList()
+adminController -> adminView : showUserList(userList)
 
 @enduml
 
@@ -205,11 +246,14 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 管理者 as admin
-participant 管理画面 as adminDisplay
-participant UserList
+participant adminController
+participant UserModel
+participant adminView
 
-admin -> adminDisplay : 貸出中ユーザ一覧表示を選択()
-adminDisplay -> UserList : getOnLoanUserList()
-adminDisplay -> adminDisplay : showUserList()
+admin -> adminController : onClickOnLoanUserList()
+
+activate adminController
+adminController -> UserModel : userList=getOnLoanUserList()
+adminController -> adminView : showUserList(userList)
 
 @enduml

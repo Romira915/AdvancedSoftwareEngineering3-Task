@@ -4,35 +4,34 @@ title 図書貸出システム
 skinparam dpi 150
 
 class User
-class StudentUser
-class Administrator
-
-class UserList
-class UserManager
-class LibraryLendSystem
-class Book
-
-User <|- StudentUser
-
 User : -name: String
 User : -id: UUID
 User : -passHash: String
 User : -LendedBook: Book[]
-User : +login()
-User : +register()
-User : +lending()
-User : +return()
-user : +createUser()
+User : +newUser(name, password)
 
-StudentUser : +roomReservation()
+class StudentUser
+User <|- StudentUser
 
-Administrator : +showAllUser()
-Administrator : +showBorrowingUser()
+class Administrator
 
-UserList : -userList: User[]
-UserList : +search()
-UserList : +getUserList()
+class EncryptionService
+
+class UUID
+
+class UserController
+UserController : -userModel: UserModel
+UserController : -appendUser(user)
+UserController : +onClickUserRegister(name, password)
+
+class UserModel
+UserModel : -userList: User[]
+UserModel : +userRegister(name, password)
+
+class UserRegisterView
 
 
+class LibraryLendSystem
+class Book
 
 @enduml
