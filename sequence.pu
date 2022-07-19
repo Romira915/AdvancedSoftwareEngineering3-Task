@@ -67,7 +67,7 @@ group Login
 
     deactivate UserModel
 
-    alt result = Ok(user)
+    alt result == Ok(user)
         Client <- LoginController : setLoginUser(user)
         LoginView <- LoginController : moveMembershipPage()
     else 
@@ -112,12 +112,11 @@ user -> BarcodeReader : readBook()
 BookModel <-- BarcodeReader
 deactivate
 
-
 BookModel -> BookModel : book=getBook(bookId)
 
 BookModel -> Book : lock()
 BookModel -> Book : isLoan=isLoan(): Bool
-alt isLoan = true
+alt isLoan == true
     BookModel -> Book : unlock()
     BookLendController <-- BookModel
     BookLendController -> BookLendView : showLendErrorMessage()
@@ -197,14 +196,14 @@ RoomReservationController -> RoomReservationView : showRoomList(roomList)
 
 user -> RoomReservationController : selectRoom()
 Client <- RoomReservationController : getMe()
-RoomReservationController -> RoomReservationModel : roomReservation(userId, roomId)
+RoomReservationController -> RoomReservationModel : roomReservation(student: Student, roomId)
 
 activate RoomReservationModel
 RoomReservationModel -> RoomReservationModel : getRoom(roomId)
 
 RoomReservationModel -> Room : lock()
 RoomReservationModel -> Room : roomStatus=getStatus(): RoomStatus
-alt roomStatus=Vacant
+alt roomStatus == Vacant
     RoomReservationModel -> Room : reserve(userId)
     RoomReservationModel -> Room : unlock()
 
@@ -228,15 +227,26 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 管理者 as admin
+participant Client
+participant LoginController
 participant AdminController
 participant UserModel
 participant AdminView
 
+admin -> LoginController : onClicklogin(userId, password)
+ref over Client, LoginController : Login
+
 admin -> AdminController : onClickUserList()
 
 activate AdminController
-AdminController -> UserModel : userList=getUserList()
-AdminController -> AdminView : showUserList(userList)
+Client <- AdminController : me=getMe()
+alt Type(me) == Administrator
+    AdminController -> UserModel : userList=getUserList()
+    AdminController -> AdminView : showUserList(userList)
+else
+    AdminController -> AdminView : movePermissionDeniedErrorPage()
+    destroy AdminController
+end
 
 @enduml
 
@@ -248,14 +258,25 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 管理者 as admin
+participant Client
+participant LoginController
 participant AdminController
 participant UserModel
 participant AdminView
 
+admin -> LoginController : onClicklogin(userId, password)
+ref over Client, LoginController : Login
+
 admin -> AdminController : onClickOnLoanUserList()
 
 activate AdminController
-AdminController -> UserModel : userList=getOnLoanUserList()
-AdminController -> AdminView : showUserList(userList)
+Client <- AdminController : me=getMe()
+alt Type(me) == Administrator
+    AdminController -> UserModel : userList=getOnLoanUserList()
+    AdminController -> AdminView : showUserList(userList)
+else
+    AdminController -> AdminView : movePermissionDeniedErrorPage()
+    destroy AdminController
+end
 
 @enduml

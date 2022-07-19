@@ -19,6 +19,7 @@ skinparam dpi 150
 :管理者: as admin
 
 user <|- st
+user <|- admin #line:red;line.bold;text:red 
 
 borrowing ..> login :<<Include>>
 return ..> login :<<Include>>

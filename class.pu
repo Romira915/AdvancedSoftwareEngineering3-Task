@@ -70,7 +70,7 @@ package model {
         -roomList: Room[]
         -getRoom(roomId): Room
         +getVacantRoomList()
-        +roomReservation(userId, roomId)
+        +roomReservation(student: Student, roomId)
     }
 }
 
@@ -102,6 +102,7 @@ package view {
 
     class AdminView {
         +showUserList(userList)
+        +movePermissionDeniedErrorPage()
     }
 }
 
@@ -148,6 +149,7 @@ package entity {
     User <|-- StudentUser
 
     entity Administrator
+    User <|-- Administrator #line:red;line.bold;text:red
 }
 
 package service {
