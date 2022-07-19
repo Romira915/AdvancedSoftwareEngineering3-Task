@@ -6,6 +6,7 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
+participant Client
 participant UserRegisterController
 participant UserModel
 participant UserRegisterView
@@ -14,7 +15,7 @@ participant User
 user -> UserRegisterController : onClickUserRegister(name, password)
 
 activate UserRegisterController
-UserRegisterController -> UserModel : userRegister(name, password)
+UserRegisterController -> UserModel : userRegister(name, password): User
 
 activate UserModel
 UserModel -> User : user=newUser(name, password)
@@ -29,6 +30,7 @@ UserModel -> UserModel : appendUser(user)
 UserRegisterController <-- UserModel
 deactivate UserModel
 
+Client <- UserRegisterController : setLoginUser(user)
 UserRegisterView <-- UserRegisterController : moveMembershipPage()
 deactivate UserRegisterController
 
@@ -42,6 +44,7 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
+participant Client
 participant LoginController
 participant UserModel
 participant LoginView
@@ -50,7 +53,7 @@ user -> LoginController : onClickLogin(id, password)
 
 group Login
     activate LoginController
-    LoginController -> UserModel : login(id, password)
+    LoginController -> UserModel : result=login(id, password): Result<User, _>
 
     activate UserModel 
     UserModel -> UserModel : user=getUser(id): User
@@ -64,7 +67,8 @@ group Login
 
     deactivate UserModel
 
-    alt isOk = true
+    alt result = Ok(user)
+        Client <- LoginController : setLoginUser(user)
         LoginView <- LoginController : moveMembershipPage()
     else 
         LoginView <- LoginController : showLoginErrorMessage()
@@ -84,20 +88,21 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
+participant Client
 participant LoginController
-participant UserModel
 participant BookLendController
 participant BookModel
 participant BookLendView
 participant BarcodeReader
 
 user -> LoginController : onClickLogin(userid, password)
-ref over UserModel, LoginController : Login
+ref over Client, LoginController : Login
 
 user -> BookLendController : onClickLend()
 
 activate BookLendController
-BookLendController -> BookModel : lend()
+Client <- BookLendController : getMe() : User
+BookLendController -> BookModel : lend(userId)
 
 activate BookModel
 BookModel -> BarcodeReader : bookId=read() : UUID
@@ -107,7 +112,6 @@ user -> BarcodeReader : readBook()
 BookModel <-- BarcodeReader
 deactivate
 
-UserModel <- BookModel : getMe() : User
 
 BookModel -> BookModel : book=getBook(bookId)
 
@@ -136,27 +140,22 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 一般 as user
+participant Client
 participant LoginController
-participant UserModel
 participant BookReturnController
 participant BookModel
 participant BookReturnView
 participant User
 
 user -> LoginController : onClickLogin(userId, password)
-ref over UserModel, LoginController : Login
+ref over Client, LoginController : Login
 
 user -> BookReturnController : onClickReturnBook()
 
 activate BookReturnController
-BookReturnController -> BookModel : getLendedList()
 
-activate BookModel
-UserModel <- BookModel : getMe() : User
-
-BookModel -> User : lendedList=getLendedList()
-BookReturnController <-- BookModel
-deactivate BookModel
+Client <- BookReturnController : getMe() : User
+BookReturnController -> BookModel : getLendedList(userId)
 
 BookReturnController -> BookReturnView : showLendedList(lendedList)
 
@@ -180,15 +179,15 @@ skinparam dpi 150
 skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
-actor 一般 as user
+actor 学生 as user
+participant Client
 participant LoginController
-participant UserModel
 participant RoomReservationController
 participant RoomReservationModel
 participant RoomReservationView
 
 user -> LoginController : onClicklogin(userId, password)
-ref over UserModel, LoginController : Login
+ref over Client, LoginController : Login
 
 user -> RoomReservationController : onClickRoomReservation()
 
@@ -197,10 +196,10 @@ RoomReservationController -> RoomReservationModel : roomList=getVacantRoomList()
 RoomReservationController -> RoomReservationView : showRoomList(roomList)
 
 user -> RoomReservationController : selectRoom()
-RoomReservationController -> RoomReservationModel : roomReservation(roomId)
+Client <- RoomReservationController : getMe()
+RoomReservationController -> RoomReservationModel : roomReservation(userId, roomId)
 
 activate RoomReservationModel
-UserModel <- RoomReservationModel : getMe()
 RoomReservationModel -> RoomReservationModel : getRoom(roomId)
 
 RoomReservationModel -> Room : lock()

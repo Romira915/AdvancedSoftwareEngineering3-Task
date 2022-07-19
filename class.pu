@@ -5,22 +5,6 @@ skinparam dpi 150
 
 
 
-class EncryptionService {
-    +hash(str): String
-}
-
-class UUID {
-    +newUUID() : UUID
-}
-
-
-
-
-
-
-
-
-
 package controller {
     class UserRegisterController {
         -userModel: UserModel
@@ -67,8 +51,8 @@ package model {
         -userList: User[]
         -appendUser(user)
         -getUser(id): User
-        +userRegister(name, password)
-        +login(id, password)
+        +userRegister(name, password): User
+        +login(id, password): Result<User, _>
         +getMe(): User
         +getUserList()
         +getOnLoanUserList()
@@ -76,16 +60,17 @@ package model {
 
     class BookModel {
         -bookList: Book[]
-        +lend()
+        +lend(userId)
         +getBook(bookId)
-        +getLendedList()
+        +getLendedList(userId)
         +returnBook(bookId)
     }
 
     class RoomReservationModel {
+        -roomList: Room[]
         -getRoom(roomId): Room
         +getVacantRoomList()
-        +roomReservation(roomId)
+        +roomReservation(userId, roomId)
     }
 }
 
@@ -126,6 +111,7 @@ package entity {
     }
 
     entity Book {
+        -rentingUser: Option<UUID>
         +lock()
         +unlock()
         +isLoan()
@@ -152,33 +138,67 @@ package entity {
         -LendedBook: Book[]
         +newUser(name, password)
         +LoginValidation(password): Bool
+        +getName()
+        +getId()
         +getLendedList()
     }
 
+    entity Client {
+        -me : Option<User>
+        +setLoginUser(user)
+        +getMe(): User
+    }
+
+    enum Result<T, E> {
+        Ok(T)
+        Err(E)
+    }
+
+    enum Option<T> {
+        None
+        Some(T)
+    }
+
     entity StudentUser
-    User <|- StudentUser
+    User <|-- StudentUser
 
     entity Administrator
 }
 
-UserModel "1" -- "1..*" User
-BookModel "1" -- "1..*" Book
-RoomReservationModel "1" -- "1..*" Room
+package service {
+    class EncryptionService {
+        +hash(str): String
+    }
 
-UserRegisterController x-- UserModel
+    class UUID {
+        +newUUID() : UUID
+    }
+}
+
+UserModel "1" *-- "1..*" User
+BookModel "1" *-- "1..*" Book
+RoomReservationModel "1" *-- "1..*" Room
+
+UserRegisterController x--- UserModel
 UserRegisterController x-- UserRegisterView
-LoginController x-- UserModel
+LoginController x--- UserModel
 LoginController x-- LoginView
-BookLendController x-- BookModel
+BookLendController x--- BookModel
 BookLendController x-- BookLendView
-BookReturnController x-- BookModel
+BookReturnController x--- BookModel
 BookReturnController x-- BookReturnView
 RoomReservationController x-- RoomReservationModel
 RoomReservationController x-- RoomReservationView
-AdminController x-- UserModel
+AdminController x--- UserModel
 AdminController x-- AdminView
 
 User x-- EncryptionService
 User x-- UUID
+
+Room -- RoomStatus
+UserModel -- Result
+Client -- Option
+Book -- Option
+BookModel -- BarcodeReader
 
 @enduml
