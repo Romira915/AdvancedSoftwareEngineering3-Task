@@ -3,35 +3,158 @@
 title 図書貸出システム
 skinparam dpi 150
 
-class User
-User : -name: String
-User : -id: UUID
-User : -passHash: String
-User : -LendedBook: Book[]
-User : +newUser(name, password)
-
-class StudentUser
-User <|- StudentUser
-
-class Administrator
-
-class EncryptionService
-
-class UUID
-
-class UserController
-UserController : -userModel: UserModel
-UserController : -appendUser(user)
-UserController : +onClickUserRegister(name, password)
-
-class UserModel
-UserModel : -userList: User[]
-UserModel : +userRegister(name, password)
-
-class UserRegisterView
 
 
-class LibraryLendSystem
-class Book
+class EncryptionService {
+    +hash(str): String
+}
+
+class UUID {
+    +newUUID() : UUID
+}
+
+
+
+
+
+
+
+
+
+package controller {
+    class UserController {
+        -userModel: UserModel
+        -userRegisterView: UserRegisterView
+        +onClickUserRegister(name, password)
+    }
+
+    class LoginController {
+        -loginView: LoginView
+        -userModel: UserModel
+        +onClickLogin(id, password)
+    }
+
+    class BookLendController {
+        -bookModel: BookModel
+        -bookLendView: BookLendView
+        +onClickLend()
+    }
+
+    class BookReturnController {
+        -bookModel : BookModel
+        -bookLendView: BookLendView
+        +onClickReturnBook()
+        +selectReturnBook()
+    }
+
+    class RoomReservationController {
+        -roomReservationModel: RoomReservationModel
+        -roomReservationView: RoomReservationView
+        +onClickRoomReservation()
+        +selectRoom()
+    }
+
+    class AdminController {
+        -userModel: UserModel
+        -adminView: AdminView
+        +onClickUserList()
+        +onClickOnLoanUserList()
+    }
+}
+
+package model {
+    class UserModel {
+        -userList: User[]
+        -appendUser(user)
+        -getUser(id): User
+        +userRegister(name, password)
+        +login(id, password)
+        +getMe(): User
+        +getUserList()
+        +getOnLoanUserList()
+    }
+
+    class BookModel {
+        -bookList: Book[]
+        +lend()
+        +getBook(bookId)
+        +getLendedList()
+        +returnBook(bookId)
+    }
+
+    class RoomReservationModel {
+        -getRoom(roomId): Room
+        +getVacantRoomList()
+        +roomReservation(roomId)
+    }
+}
+
+package view {
+    class UserRegisterView {
+        +moveMembersshipPage()
+    }
+
+    class LoginView {
+        +moveMembersshipPage()
+        +showLoginErrorMessage()
+    }
+
+    class BookLendView {
+        +showLendErrorMessage()
+        +moveLendCompletedPage()
+        +showLendedList(lendedList)
+    }
+
+    class RoomReservationView {
+        +showRoomList(roomList)
+        +moveReservedPage()
+        +showReservedMessage()
+    }
+
+    class AdminView {
+        +showUserList(userList)
+    }
+}
+
+package entity {
+    entity BarcodeReader {
+        +read(): UUID
+    }
+
+    entity Book {
+        +lock()
+        +unlock()
+        +isLoan()
+        +setLendByUser(userId)
+        +returnBook()
+    }
+
+    entity Room {
+        +lock()
+        +unlock()
+        +getStatus() : RoomStatus
+        +reserve(userId)
+    }
+
+    enum RoomStatus {
+        Vacant
+        Reserved(userId: UUID)
+    }
+
+    entity User {
+        -name: String
+        -id: UUID
+        -passHash: String
+        -LendedBook: Book[]
+        +newUser(name, password)
+        +LoginValidation(password): Bool
+        +getLendedList()
+    }
+
+    entity StudentUser
+    User <|- StudentUser
+
+    entity Administrator
+}
 
 @enduml

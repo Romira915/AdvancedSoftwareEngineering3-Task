@@ -190,14 +190,14 @@ ref over UserModel, LoginController : Login
 user -> RoomReservationController : onClickRoomReservation()
 
 activate RoomReservationController
-RoomReservationController -> RoomReservationModel : getVacantRoomList()
-RoomReservationController -> RoomReservationView : showRoom()
+RoomReservationController -> RoomReservationModel : roomList=getVacantRoomList()
+RoomReservationController -> RoomReservationView : showRoomList(roomList)
 
 user -> RoomReservationController : selectRoom()
 RoomReservationController -> RoomReservationModel : roomReservation(roomId)
 
 activate RoomReservationModel
-LoginController <- RoomReservationModel : getLoginUser()
+UserModel <- RoomReservationModel : getMe()
 RoomReservationModel -> RoomReservationModel : getRoom(roomId)
 
 RoomReservationModel -> Room : lock()
@@ -226,15 +226,15 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 管理者 as admin
-participant adminController
+participant AdminController
 participant UserModel
-participant adminView
+participant AdminView
 
-admin -> adminController : onClickUserList()
+admin -> AdminController : onClickUserList()
 
-activate adminController
-adminController -> UserModel : userList=getUserList()
-adminController -> adminView : showUserList(userList)
+activate AdminController
+AdminController -> UserModel : userList=getUserList()
+AdminController -> AdminView : showUserList(userList)
 
 @enduml
 
@@ -246,14 +246,14 @@ skinparam responseMessageBelowArrow true
 skinparam style strictuml
 
 actor 管理者 as admin
-participant adminController
+participant AdminController
 participant UserModel
-participant adminView
+participant AdminView
 
-admin -> adminController : onClickOnLoanUserList()
+admin -> AdminController : onClickOnLoanUserList()
 
-activate adminController
-adminController -> UserModel : userList=getOnLoanUserList()
-adminController -> adminView : showUserList(userList)
+activate AdminController
+AdminController -> UserModel : userList=getOnLoanUserList()
+AdminController -> AdminView : showUserList(userList)
 
 @enduml
