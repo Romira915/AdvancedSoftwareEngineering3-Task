@@ -144,22 +144,6 @@ package entity {
         +getLendedList()
     }
 
-    entity Client {
-        -me : Option<User>
-        +setLoginUser(user)
-        +getMe(): User
-    }
-
-    enum Result<T, E> {
-        Ok(T)
-        Err(E)
-    }
-
-    enum Option<T> {
-        None
-        Some(T)
-    }
-
     entity StudentUser
     User <|-- StudentUser
 
@@ -174,6 +158,24 @@ package service {
     class UUID {
         +newUUID() : UUID
     }
+}
+
+package std {
+    enum Result<T, E> {
+        Ok(T)
+        Err(E)
+    }
+
+    enum Option<T> {
+        None
+        Some(T)
+    }
+}
+
+entity Client {
+        -me : Option<User>
+        +setLoginUser(user)
+        +getMe(): User
 }
 
 UserModel "1" *-- "1..*" User
@@ -193,14 +195,21 @@ RoomReservationController x-- RoomReservationView
 AdminController x--- UserModel
 AdminController x-- AdminView
 
+UserRegisterController x-- Client
+LoginController x-- Client
+BookLendController x-- Client
+BookReturnController x-- Client
+RoomReservationController x-- Client
+
+
 User x-- EncryptionService
 User x-- UUID
 
 Room -- RoomStatus
-UserModel -- Result
-Client -- Option
-Book -- Option
-Room -- Option
+UserModel --- Result
+Client --- Option
+Book --- Option
+Room --- Option
 BookModel -- BarcodeReader
 
 @enduml
