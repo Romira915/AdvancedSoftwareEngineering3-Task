@@ -1,9 +1,40 @@
-@startuml 図書貸出システム
+@startuml 図書貸出システム_クラス図
 
-title 図書貸出システム
+title 図書貸出システム クラス図
 skinparam dpi 150
+!include style.pu
 
+package view {
+    class UserRegisterView {
+        +moveMembersshipPage()
+    }
 
+    class LoginView {
+        +moveMembersshipPage()
+        +showLoginErrorMessage()
+    }
+
+    class BookLendView {
+        +showLendErrorMessage()
+        +moveLendCompletedPage()
+    }
+
+    class BookReturnView {
+        +showLendedList(lendedList)
+        +moveReturnCompletedPage()
+    }
+
+    class RoomReservationView {
+        +showRoomList(roomList)
+        +moveReservedPage()
+        +showReservedMessage()
+    }
+
+    class AdminView {
+        +showUserList(userList)
+        +movePermissionDeniedErrorPage()
+    }
+}
 
 package controller {
     class UserRegisterController {
@@ -44,6 +75,12 @@ package controller {
         +onClickUserList()
         +onClickOnLoanUserList()
     }
+
+    class BookReservationController {
+        -bookModel : BookModel
+        -bookReservationView : BookReservationView
+        +onClickBookReservation()
+    }
 }
 
 package model {
@@ -64,46 +101,18 @@ package model {
         +getBook(bookId)
         +getLendedList(userId)
         +returnBook(bookId)
+        +reservationBook(userId, bookId)
     }
 
     class RoomReservationModel {
         -roomList: Room[]
         -getRoom(roomId): Room
         +getVacantRoomList()
-        +roomReservation(userId, roomId)
+        +roomReservation(student: Student, roomId)
     }
 }
 
-package view {
-    class UserRegisterView {
-        +moveMembersshipPage()
-    }
 
-    class LoginView {
-        +moveMembersshipPage()
-        +showLoginErrorMessage()
-    }
-
-    class BookLendView {
-        +showLendErrorMessage()
-        +moveLendCompletedPage()
-    }
-
-    class BookReturnView {
-        +showLendedList(lendedList)
-        +moveReturnCompletedPage()
-    }
-
-    class RoomReservationView {
-        +showRoomList(roomList)
-        +moveReservedPage()
-        +showReservedMessage()
-    }
-
-    class AdminView {
-        +showUserList(userList)
-    }
-}
 
 package entity {
     entity BarcodeReader {
@@ -111,15 +120,20 @@ package entity {
     }
 
     entity Book {
+        -id: UUID
         -rentingUser: Option<UUID>
+        -reservationQueue: Queue<UUID>
         +lock()
         +unlock()
-        +isLoan()
+        +canLend()
         +setLendByUser(userId)
         +returnBook()
+        +reservation(userId)
+        +getNumReservation()
     }
 
     entity Room {
+        -id: UUID
         -reservingUser: Option<UUID>
         +lock()
         +unlock()
@@ -148,6 +162,7 @@ package entity {
     User <|-- StudentUser
 
     entity Administrator
+    User <|-- Administrator #line:red;line.bold;text:red
 }
 
 package service {
@@ -182,34 +197,38 @@ UserModel "1" *-- "1..*" User
 BookModel "1" *-- "1..*" Book
 RoomReservationModel "1" *-- "1..*" Room
 
-UserRegisterController x--- UserModel
-UserRegisterController x-- UserRegisterView
-LoginController x--- UserModel
-LoginController x-- LoginView
-BookLendController x--- BookModel
-BookLendController x-- BookLendView
-BookReturnController x--- BookModel
-BookReturnController x-- BookReturnView
-RoomReservationController x-- RoomReservationModel
-RoomReservationController x-- RoomReservationView
-AdminController x--- UserModel
-AdminController x-- AdminView
+UserRegisterController "*" x-- "1" UserModel
+LoginController "*" x-- "1" UserModel
+BookLendController "*" x-- "1" BookModel
+BookReturnController "*" x-- "1" BookModel
+RoomReservationController "*" x-- "1" RoomReservationModel
+AdminController "*" x-- "1" UserModel
 
-UserRegisterController x-- Client
-LoginController x-- Client
-BookLendController x-- Client
-BookReturnController x-- Client
-RoomReservationController x-- Client
+UserRegisterView --x UserRegisterController
+LoginView --x LoginController
+BookLendView --x BookLendController
+BookReturnView --x BookReturnController
+RoomReservationView --x RoomReservationController
+AdminView --x AdminController
 
+Client --x UserRegisterController
+Client --x LoginController
+Client --x BookLendController
+Client --x BookReturnController
+Client --x RoomReservationController
+Client --x AdminController
+Client --x BookReservationController
 
-User x-- EncryptionService
-User x-- UUID
+User x- EncryptionService
+User x- UUID
+Book x- UUID
+Room x- UUID
 
 Room -- RoomStatus
-UserModel --- Result
-Client --- Option
-Book --- Option
-Room --- Option
+UserModel -- Result
+Client -- Option
+Book -- Option
+Room -- Option
 BookModel -- BarcodeReader
 
 @enduml

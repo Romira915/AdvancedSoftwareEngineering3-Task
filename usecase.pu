@@ -1,36 +1,51 @@
-@startuml 図書貸出システム
+@startuml 図書貸出システム_ユースケース図
 
-title 図書貸出システム
+title 図書貸出システム ユースケース図
 ' top to bottom direction
 left to right direction
 skinparam dpi 150
+!include style.pu
 
-(利用者登録) as userRegister
-(貸出手続) as borrowing
-(返却手続) as return
-(AV室予約) as roomReservation
-(ログインする) as login
+rectangle 図書貸出システム {
+    (利用者登録) as userRegister
+    (貸出手続) as borrowing
+    (返却手続) as return
+    (AV室予約) as roomReservation
+    (ログインする) as login
 
-(登録ユーザ一覧表示) as showAllUser
-(貸出中ユーザ一覧表示) as showBorrowingUser
+    (登録ユーザ一覧表示) as showAllUser
+    (貸出中ユーザ一覧表示) as showBorrowingUser
+
+    (本を検索する) as searchBook #pink;line:red;line.bold;text:red
+    (貸出ランキングを表示) as showLanking #pink;line:red;line.bold;text:red
+    (本の貸出を予約する) as reservationBook #pink;line:red;line.bold;text:red
+}
 
 :一般: as user
 :学生: as st
 :管理者: as admin
 
 user <|- st
+user <|- admin #line:red;line.bold;text:red 
 
-borrowing ..> login :<<Include>>
-return ..> login :<<Include>>
-roomReservation ..> login :<<Include>>
+borrowing ..> login :<<include>>
+return ..> login :<<include>>
+roomReservation ..> login :<<include>>
 
 user -- userRegister
 user -- borrowing
 user -- return
 
-st - roomReservation
+st -- roomReservation
 
-admin - showAllUser
-admin - showBorrowingUser
+admin -- showAllUser
+admin -- showBorrowingUser
+
+user -- searchBook #line:red;line.bold;text:red
+user -- showLanking #line:red;line.bold;text:red
+user -- reservationBook #line:red;line.bold;text:red
+reservationBook ..> login #line:red;text:red :<<include>>
+showAllUser ..> login #line:red;text:red :<<include>>
+showBorrowingUser ..> login #line:red;text:red :<<include>>
 
 @enduml
