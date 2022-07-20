@@ -1,5 +1,6 @@
 @startuml 利用者登録
 
+!include style.pu
 title 利用者登録
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -38,6 +39,7 @@ deactivate UserRegisterController
 
 @startuml ログインする
 
+!include style.pu
 title ログインする
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -82,6 +84,7 @@ end
 
 @startuml 貸出手続
 
+!include style.pu
 title 貸出手続
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -115,17 +118,17 @@ deactivate
 BookModel -> BookModel : book=getBook(bookId)
 
 BookModel -> Book : lock()
-BookModel -> Book : isLoan=isLoan(): Bool
-alt isLoan == true
-    BookModel -> Book : unlock()
-    BookLendController <-- BookModel
-    BookLendController -> BookLendView : showLendErrorMessage()
-else 
+BookModel -> Book : canLend=canLend(): Bool
+alt canLend == true
     BookModel -> Book : setLendByUser(userId)
     BookModel -> Book : unlock()
 
     BookLendController <-- BookModel
     BookLendController -> BookLendView : moveLendCompletedPage()
+else
+    BookModel -> Book : unlock()
+    BookLendController <-- BookModel
+    BookLendController -> BookLendView : showLendErrorMessage()
 end
 deactivate BookModel
 
@@ -133,6 +136,7 @@ deactivate BookModel
 
 @startuml 返却手続
 
+!include style.pu
 title 返却手続
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -173,6 +177,7 @@ BookReturnController -> BookReturnView : moveReturnCompletedPage()
 
 @startuml AV室予約
 
+!include style.pu
 title AV室予約
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -221,6 +226,7 @@ deactivate RoomReservationModel
 
 @startuml 登録ユーザ一覧表示
 
+!include style.pu
 title 登録ユーザ一覧表示
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -252,6 +258,7 @@ end
 
 @startuml 貸出中ユーザ一覧表示
 
+!include style.pu
 title 貸出中ユーザ一覧表示
 skinparam dpi 150
 skinparam responseMessageBelowArrow true
@@ -278,5 +285,51 @@ else
     AdminController -> AdminView : movePermissionDeniedErrorPage()
     destroy AdminController
 end
+
+@enduml
+
+@startuml 本の貸出を予約する
+
+!include style.pu
+title 本の貸出を予約する
+skinparam dpi 150
+skinparam responseMessageBelowArrow true
+skinparam style strictuml
+
+actor 一般 as user
+participant Client
+participant LoginController
+participant BookReservationController
+participant BookModel
+participant BookReservationView
+participant User
+participant Book
+
+user -> LoginController : onClicklogin(userId, password)
+ref over Client, LoginController : Login
+
+user -> BookReservationController : onClickBookReservation()
+
+activate BookReservationController
+Client <- BookReservationController : getMe()
+BookReservationController -> BookModel : reservationBook(userId, bookId)
+
+activate BookModel
+BookModel -> BookModel : getBook(bookId)
+
+BookModel -> Book : lock()
+BookModel -> Book : numReservation=getNumReservation()
+
+alt numReservation <= 3
+    BookModel -> Book : reservation(userId)
+    BookModel -> Book : unlock()
+    BookReservationController <-- BookModel
+    BookReservationController -> BookReservationView : moveReservedPage()
+else
+    BookModel -> Book : unlock()
+    BookReservationController <-- BookModel
+    BookReservationController -> BookReservationView : showReservationErrorMessage()
+end
+deactivate BookModel
 
 @enduml

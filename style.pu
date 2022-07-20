@@ -1,0 +1,19 @@
+'共通
+skinparam backgroundColor #23282F
+skinparam TitleFontColor white
+
+skinparam RectangleBackgroundColor #8B98A4
+
+skinparam ActorFontColor white
+skinparam ActorBorderColor white
+skinparam ActorBackgroundColor green
+
+skinparam ArrowColor lime
+skinparam ArrowFontColor white
+
+skinparam PackageBackgroundColor #8B98A4
+skinparam PackageFontColor green
+
+skinparam SequenceReferenceFontColor black
+skinparam SequenceReferenceBackgroundColor #8B98A4
+skinparam SequenceLifeLineBorderColor white
