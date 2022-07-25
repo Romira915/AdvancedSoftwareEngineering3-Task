@@ -22,8 +22,17 @@ activate UserModel
 UserModel -> User : user=newUser(name, password)
 
 activate User
+
 User -> EncryptionService : passHash=hash(str): String
+activate EncryptionService
+User <-- EncryptionService
+deactivate EncryptionService
+
 User -> UUID : id=newUUID(): UUID
+activate UUID
+User <-- UUID
+deactivate
+
 UserModel <-- User
 deactivate User
 
@@ -32,7 +41,15 @@ UserRegisterController <-- UserModel
 deactivate UserModel
 
 Client <- UserRegisterController : setLoginUser(user)
-UserRegisterView <-- UserRegisterController : moveMembershipPage()
+activate Client
+Client --> UserRegisterController
+deactivate Client
+
+UserRegisterView <<- UserRegisterController : moveMembershipPage()
+activate UserRegisterView
+deactivate UserRegisterView
+
+user <-- UserRegisterController
 deactivate UserRegisterController
 
 @enduml
@@ -63,19 +80,33 @@ group Login
 
     activate User
     User -> EncryptionService : passHash=hash(str): String
+    activate EncryptionService
+    User <-- EncryptionService
+    deactivate EncryptionService
+
     UserModel <-- User
-    LoginController <-- UserModel
     deactivate User
+
+    LoginController <-- UserModel
 
     deactivate UserModel
 
     alt result == Ok(user)
         Client <- LoginController : setLoginUser(user)
-        LoginView <- LoginController : moveMembershipPage()
+        activate Client
+        Client --> LoginController
+        deactivate Client
+
+        LoginView <<- LoginController : moveMembershipPage()
+        activate LoginView
+        deactivate LoginView
     else 
-        LoginView <- LoginController : showLoginErrorMessage()
+        LoginView <<- LoginController : showLoginErrorMessage()
+        activate LoginView
+        deactivate LoginView
     end
 
+    user <-- LoginController
     deactivate LoginController
     deactivate LoginView
 end
@@ -105,6 +136,10 @@ user -> BookLendController : onClickLend()
 
 activate BookLendController
 Client <- BookLendController : getMe() : User
+activate Client
+Client --> BookLendController
+deactivate Client
+
 BookLendController -> BookModel : lend(userId)
 
 activate BookModel
@@ -118,19 +153,47 @@ deactivate
 BookModel -> BookModel : book=getBook(bookId)
 
 BookModel -> Book : lock()
+activate Book
+BookModel <-- Book
+deactivate Book
+
 BookModel -> Book : canLend=canLend(): Bool
+activate Book
+BookModel <-- Book
+deactivate Book
+
 alt canLend == true
     BookModel -> Book : setLendByUser(userId)
+    activate Book
+    BookModel <-- Book
+    deactivate Book
+
     BookModel -> Book : unlock()
+    activate Book
+    BookModel <-- Book
+    deactivate Book
 
     BookLendController <-- BookModel
-    BookLendController -> BookLendView : moveLendCompletedPage()
+    BookLendController ->> BookLendView : moveLendCompletedPage()
+    activate BookLendView
+    deactivate BookLendView
 else
     BookModel -> Book : unlock()
+    activate Book
+    BookModel <-- Book
+    deactivate Book
+
     BookLendController <-- BookModel
-    BookLendController -> BookLendView : showLendErrorMessage()
+    BookLendController ->> BookLendView : showLendErrorMessage()
+    activate BookLendView
+    deactivate BookLendView
 end
+
+BookLendController <-- BookModel
 deactivate BookModel
+
+user <-- BookLendController
+deactivate BookLendController
 
 @enduml 
 
@@ -158,20 +221,44 @@ user -> BookReturnController : onClickReturnBook()
 activate BookReturnController
 
 Client <- BookReturnController : getMe() : User
+activate Client
+Client --> BookReturnController
+deactivate
+
 BookReturnController -> BookModel : getLendedList(userId)
+activate BookModel
+BookReturnController <-- BookModel
+deactivate BookModel
 
 BookReturnController -> BookReturnView : showLendedList(lendedList)
+activate BookReturnView
+BookReturnController <-- BookReturnView
+deactivate BookReturnView
+
+user <-- BookReturnController
+deactivate BookReturnController
 
 user -> BookReturnController : selectReturnBook()
+activate BookReturnController
 BookReturnController -> BookModel : returnBook(bookId)
 
 activate BookModel
 BookModel -> BookModel : book=getBook(bookId)
+
 BookModel -> Book : returnBook()
+activate Book
+BookModel <-- Book
+deactivate Book
+
 BookReturnController <-- BookModel
 deactivate BookModel
 
-BookReturnController -> BookReturnView : moveReturnCompletedPage()
+BookReturnController ->> BookReturnView : moveReturnCompletedPage()
+activate BookReturnView
+deactivate BookReturnView
+
+user <-- BookReturnController
+deactivate BookReturnController
 
 @enduml
 
@@ -194,13 +281,30 @@ user -> LoginController : onClicklogin(userId, password)
 ref over Client, LoginController : Login
 
 user -> RoomReservationController : onClickRoomReservation()
-
 activate RoomReservationController
+
 RoomReservationController -> RoomReservationModel : roomList=getVacantRoomList()
+activate RoomReservationModel
+RoomReservationController <-- RoomReservationModel
+deactivate RoomReservationModel
+
 RoomReservationController -> RoomReservationView : showRoomList(roomList)
+activate RoomReservationView
+RoomReservationController <-- RoomReservationView
+deactivate RoomReservationView
 
 user -> RoomReservationController : selectRoom()
-Client <- RoomReservationController : getMe()
+
+Client <- RoomReservationController : me=getMe()
+activate Client
+Client --> RoomReservationController
+deactivate Client
+
+alt Type(me) == Student
+    RoomReservationController -> RoomReservationView : showReservedMessage()
+else
+end
+
 RoomReservationController -> RoomReservationModel : roomReservation(student: Student, roomId)
 
 activate RoomReservationModel

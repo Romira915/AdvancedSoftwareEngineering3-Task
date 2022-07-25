@@ -219,16 +219,16 @@ Client --x RoomReservationController
 Client --x AdminController
 Client --x BookReservationController
 
-User x- EncryptionService
-User x- UUID
-Book x- UUID
-Room x- UUID
+User "*" x- "1" EncryptionService
+User "*" x- "1" UUID
+Book "*" x- "1" UUID
+Room "*" x- "1" UUID
 
-Room -- RoomStatus
-UserModel -- Result
-Client -- Option
-Book -- Option
-Room -- Option
+Room ..> RoomStatus : <<create>>
+UserModel ..> Result : <<create>>
+Client ..> Option : <<create>>
+Book ..> Option : <<create>>
+Room ..> Option : <<create>>
 BookModel -- BarcodeReader
 
 @enduml
