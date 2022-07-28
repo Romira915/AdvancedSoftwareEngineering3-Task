@@ -187,10 +187,12 @@ package std {
     }
 }
 
-entity Client {
-        -me : Option<User>
-        +setLoginUser(user)
-        +getMe(): User
+package localStorage {
+    entity Client {
+            -me : Option<User>
+            +setLoginUser(user)
+            +getMe(): User
+    }
 }
 
 UserModel "1" *-- "1..*" User
