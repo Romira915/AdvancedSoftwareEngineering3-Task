@@ -47,6 +47,7 @@ deactivate Client
 
 UserRegisterView <<- UserRegisterController : moveMembershipPage()
 activate UserRegisterView
+UserRegisterView -->> UserRegisterController
 deactivate UserRegisterView
 
 user <-- UserRegisterController
@@ -99,10 +100,12 @@ group Login
 
         LoginView <<- LoginController : moveMembershipPage()
         activate LoginView
+        LoginView -->> LoginController
         deactivate LoginView
     else 
         LoginView <<- LoginController : showLoginErrorMessage()
         activate LoginView
+        LoginView -->> LoginController
         deactivate LoginView
     end
 
@@ -186,6 +189,7 @@ else
     BookLendController <-- BookModel
     BookLendController ->> BookLendView : showLendErrorMessage()
     activate BookLendView
+    BookLendController <<-- BookLendView
     deactivate BookLendView
 end
 
@@ -255,6 +259,7 @@ deactivate BookModel
 
 BookReturnController ->> BookReturnView : moveReturnCompletedPage()
 activate BookReturnView
+BookReturnController <<-- BookReturnView
 deactivate BookReturnView
 
 user <-- BookReturnController
@@ -293,7 +298,11 @@ activate RoomReservationView
 RoomReservationController <-- RoomReservationView
 deactivate RoomReservationView
 
+user <-- RoomReservationController
+deactivate RoomReservationController
+
 user -> RoomReservationController : selectRoom()
+activate RoomReservationController
 
 Client <- RoomReservationController : me=getMe()
 activate Client
@@ -311,20 +320,48 @@ activate RoomReservationModel
 RoomReservationModel -> RoomReservationModel : getRoom(roomId)
 
 RoomReservationModel -> Room : lock()
+activate Room
+RoomReservationModel <-- Room
+deactivate Room
+
 RoomReservationModel -> Room : roomStatus=getStatus(): RoomStatus
+activate Room
+RoomReservationModel <-- Room
+deactivate Room
+
 alt roomStatus == Vacant
     RoomReservationModel -> Room : reserve(userId)
+    activate Room
+    RoomReservationModel <-- Room
+    deactivate Room
+
     RoomReservationModel -> Room : unlock()
+    activate Room
+    RoomReservationModel <-- Room
+    deactivate Room
 
     RoomReservationController <-- RoomReservationModel
-    RoomReservationController -> RoomReservationView : moveReservedPage()
+    RoomReservationController ->> RoomReservationView : moveReservedPage()
+    activate RoomReservationView
+    RoomReservationController <<-- RoomReservationView
+    deactivate RoomReservationView
 else
     RoomReservationModel -> Room : unlock()
+    activate Room
+    RoomReservationModel <-- Room
+    deactivate Room
 
     RoomReservationController <-- RoomReservationModel
-    RoomReservationController -> RoomReservationView : showReservedMessage()
+    RoomReservationController ->> RoomReservationView : showReservedMessage()
+    activate RoomReservationView
+    RoomReservationController <<-- RoomReservationView
+    deactivate RoomReservationView
 end
+
 deactivate RoomReservationModel
+
+user <-- RoomReservationController
+deactivate RoomReservationController
 
 @enduml
 
@@ -349,13 +386,29 @@ ref over Client, LoginController : Login
 admin -> AdminController : onClickUserList()
 
 activate AdminController
+
 Client <- AdminController : me=getMe()
+activate Client
+Client --> AdminController
+deactivate Client
+
 alt Type(me) == Administrator
     AdminController -> UserModel : userList=getUserList()
-    AdminController -> AdminView : showUserList(userList)
+    activate UserModel
+    AdminController <-- UserModel
+    deactivate UserModel
+
+    AdminController ->> AdminView : showUserList(userList)
+    activate AdminView
+    AdminController <<-- AdminView
+    deactivate AdminView
 else
-    AdminController -> AdminView : movePermissionDeniedErrorPage()
+    AdminController ->> AdminView : movePermissionDeniedErrorPage()
+    activate AdminView
+    AdminController <<-- AdminView
+    deactivate AdminView
     destroy AdminController
+    
 end
 
 @enduml
@@ -381,12 +434,27 @@ ref over Client, LoginController : Login
 admin -> AdminController : onClickOnLoanUserList()
 
 activate AdminController
+
 Client <- AdminController : me=getMe()
+activate Client
+Client --> AdminController
+deactivate Client
+
 alt Type(me) == Administrator
     AdminController -> UserModel : userList=getOnLoanUserList()
-    AdminController -> AdminView : showUserList(userList)
+    activate UserModel
+    AdminController <-- UserModel
+    deactivate UserModel
+
+    AdminController ->> AdminView : showUserList(userList)
+    activate AdminView
+    AdminController <<-- AdminView
+    deactivate AdminView
 else
-    AdminController -> AdminView : movePermissionDeniedErrorPage()
+    AdminController ->> AdminView : movePermissionDeniedErrorPage()
+    activate AdminView
+    AdminController <<-- AdminView
+    deactivate AdminView
     destroy AdminController
 end
 
@@ -416,24 +484,59 @@ user -> BookReservationController : onClickBookReservation()
 
 activate BookReservationController
 Client <- BookReservationController : getMe()
+activate Client
+Client --> BookReservationController
+deactivate Client
+
 BookReservationController -> BookModel : reservationBook(userId, bookId)
 
 activate BookModel
 BookModel -> BookModel : getBook(bookId)
 
 BookModel -> Book : lock()
+activate Book
+BookModel <-- Book
+deactivate Book
+
 BookModel -> Book : numReservation=getNumReservation()
+activate Book
+BookModel <-- Book
+deactivate Book
 
 alt numReservation <= 3
     BookModel -> Book : reservation(userId)
+    activate Book
+    BookModel <-- Book
+    deactivate Book
+    
     BookModel -> Book : unlock()
+    activate Book
+    BookModel <-- Book
+    deactivate Book
+
     BookReservationController <-- BookModel
-    BookReservationController -> BookReservationView : moveReservedPage()
+
+    BookReservationController ->> BookReservationView : moveReservedPage()
+    activate BookReservationView
+    BookReservationController <<-- BookReservationView
+    deactivate BookReservationView
 else
     BookModel -> Book : unlock()
+    activate Book
+    BookModel <-- Book
+    deactivate Book
+    
     BookReservationController <-- BookModel
-    BookReservationController -> BookReservationView : showReservationErrorMessage()
+
+    BookReservationController ->> BookReservationView : showReservationErrorMessage()
+    activate BookReservationView
+    BookReservationController <<-- BookReservationView
+    deactivate BookReservationView
 end
+
 deactivate BookModel
+
+user <-- BookReservationController
+deactivate BookReservationController
 
 @enduml
