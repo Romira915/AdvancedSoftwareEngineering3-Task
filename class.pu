@@ -213,18 +213,18 @@ BookReturnView --x BookReturnController
 RoomReservationView --x RoomReservationController
 AdminView --x AdminController
 
-Client --x UserRegisterController
-Client --x LoginController
-Client --x BookLendController
-Client --x BookReturnController
-Client --x RoomReservationController
-Client --x AdminController
-Client --x BookReservationController
+Client --x UserRegisterController #line:yellow;line.bold;text:yellow
+Client --x LoginController #line:yellow;line.bold;text:yellow
+Client --x BookLendController #line:yellow;line.bold;text:yellow
+Client --x BookReturnController #line:yellow;line.bold;text:yellow
+Client --x RoomReservationController #line:yellow;line.bold;text:yellow
+Client --x AdminController #line:yellow;line.bold;text:yellow
+Client --x BookReservationController #line:yellow;line.bold;text:yellow
 
-User "*" x- "1" EncryptionService
-User "*" x- "1" UUID
-Book "*" x- "1" UUID
-Room "*" x- "1" UUID
+User "*" x--- "1" EncryptionService
+User "*" x--- "1" UUID
+Book "*" x--- "1" UUID
+Room "*" x--- "1" UUID
 
 Room ..> RoomStatus : <<create>>
 UserModel ..> Result : <<create>>
