@@ -23,16 +23,25 @@ package view {
         +showLendedList(lendedList)
         +moveReturnCompletedPage()
     }
-
+   
     class RoomReservationView {
         +showRoomList(roomList)
         +moveReservedPage()
-        +showReservedMessage()
+        +showReservationErrorMessage()
     }
 
     class AdminView {
         +showUserList(userList)
         +movePermissionDeniedErrorPage()
+    }
+
+    class BookReservationView {
+        +moveReservedPage()
+        +showReservationErrorMessage()
+    }
+
+    class BookSearchView {
+        +showBookList(bookList)
     }
 }
 
@@ -57,7 +66,7 @@ package controller {
 
     class BookReturnController {
         -bookModel : BookModel
-        -bookLendView: BookLendView
+        -bookReturnView: BookReturnView
         +onClickReturnBook()
         +selectReturnBook()
     }
@@ -77,9 +86,15 @@ package controller {
     }
 
     class BookReservationController {
-        -bookModel : BookModel
+        -bookModel: BookModel
         -bookReservationView : BookReservationView
         +onClickBookReservation()
+    }
+
+    class BookSearchController {
+        -bookModel: BookModel
+        -bookSearchView: BookSearchView
+        +onClickSearch(query)
     }
 }
 
@@ -93,15 +108,18 @@ package model {
         +getMe(): User
         +getUserList()
         +getOnLoanUserList()
+        +setLendBook(userId, bookId)
+        +getLendedList(userId)
+        +returnBook(userId, bookId)
     }
 
     class BookModel {
         -bookList: Book[]
-        +lend(userId)
+        +lend(userId): Result<UUID>
         +getBook(bookId)
-        +getLendedList(userId)
         +returnBook(bookId)
         +reservationBook(userId, bookId)
+        +searchBook(query): Book[]
     }
 
     class RoomReservationModel {
@@ -121,6 +139,9 @@ package entity {
 
     entity Book {
         -id: UUID
+        -title: String
+        -auther: String
+        -publisher: String
         -rentingUser: Option<UUID>
         -reservationQueue: Queue<UUID>
         +lock()
@@ -130,6 +151,7 @@ package entity {
         +returnBook()
         +reservation(userId)
         +getNumReservation()
+        +getTitle()
     }
 
     entity Room {
@@ -156,6 +178,9 @@ package entity {
         +getName()
         +getId()
         +getLendedList()
+        +isLended(): bool
+        +setLendBook(bookId)
+        +returnBook(bookId)
     }
 
     entity StudentUser
@@ -203,6 +228,8 @@ UserRegisterController "*" x-- "1" UserModel
 LoginController "*" x-- "1" UserModel
 BookLendController "*" x-- "1" BookModel
 BookReturnController "*" x-- "1" BookModel
+BookReservationController "*" x-- "1" BookModel
+BookSearchController "*" x-- "1" BookModel
 RoomReservationController "*" x-- "1" RoomReservationModel
 AdminController "*" x-- "1" UserModel
 
@@ -212,6 +239,8 @@ BookLendView --x BookLendController
 BookReturnView --x BookReturnController
 RoomReservationView --x RoomReservationController
 AdminView --x AdminController
+BookReservationView --x BookReservationController
+BookSearchView --x BookSearchController
 
 Client --x UserRegisterController #line:yellow;line.bold;text:yellow
 Client --x LoginController #line:yellow;line.bold;text:yellow

@@ -5,7 +5,7 @@ skinparam TitleFontColor white
 skinparam RectangleBackgroundColor #8B98A4
 
 skinparam ActorFontColor white
-skinparam ActorBorderColor green
+skinparam ActorBorderColor lime
 skinparam ActorBackgroundColor green
 
 skinparam ArrowColor lime
