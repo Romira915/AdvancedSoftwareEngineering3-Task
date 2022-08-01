@@ -17,7 +17,7 @@ rectangle 図書貸出システム {
     (貸出中ユーザ一覧表示) as showBorrowingUser
 
     (本を検索する) as searchBook #pink;line:red;line.bold;text:red
-    (貸出ランキングを表示) as showLanking #pink;line:red;line.bold;text:red
+    ' (貸出ランキングを表示) as showLanking #pink;line:red;line.bold;text:red
     (本の貸出を予約する) as reservationBook #pink;line:red;line.bold;text:red
 }
 
@@ -42,7 +42,7 @@ admin -- showAllUser
 admin -- showBorrowingUser
 
 user -- searchBook #line:red;line.bold;text:red
-user -- showLanking #line:red;line.bold;text:red
+' user -- showLanking #line:red;line.bold;text:red
 user -- reservationBook #line:red;line.bold;text:red
 reservationBook ..> login #line:red;text:red :<<include>>
 showAllUser ..> login #line:red;text:red :<<include>>

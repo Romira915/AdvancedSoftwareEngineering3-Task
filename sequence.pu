@@ -88,7 +88,11 @@ group Login
     UserModel <<-- User
     deactivate User
 
-    LoginController <<-- UserModel
+    alt isOk == true
+    LoginController <<-- UserModel : Ok
+    else
+    LoginController <<-- UserModel : Err
+    end
 
     deactivate UserModel
 
@@ -152,7 +156,6 @@ activate BookModel
 BookModel -> BarcodeReader : bookId=read() : UUID
 
 activate BarcodeReader
-user -> BarcodeReader : readBook()
 BookModel <<-- BarcodeReader
 deactivate
 
@@ -179,7 +182,7 @@ alt canLend == true
     BookModel <<-- Book
     deactivate Book
 
-    BookLendController <<-- BookModel : true
+    BookLendController <<-- BookModel : Ok
     BookLendController ->> BookLendView : moveLendCompletedPage()
     activate BookLendView
     BookLendController <<-- BookLendView : 
@@ -190,7 +193,7 @@ else
     BookModel <<-- Book
     deactivate Book
 
-    BookLendController <<-- BookModel : false
+    BookLendController <<-- BookModel : Err
     BookLendController ->> BookLendView : showLendErrorMessage()
     activate BookLendView
     BookLendController <<-- BookLendView 
@@ -279,6 +282,7 @@ deactivate BookModel
 
 BookReturnController -> UserModel: returnBook(userId, bookId)
 activate UserModel
+UserModel -> UserModel : user=getUser(userId): User
 UserModel -> User: returnBook(bookId)
 activate User
 UserModel <<-- User
@@ -466,7 +470,6 @@ participant LoginController
 participant AdminController
 participant UserModel
 participant AdminView
-participant User
 
 admin -> LoginController : onClicklogin(userId, password)
 ref over Client, LoginController : Login
@@ -483,17 +486,6 @@ deactivate Client
 alt Type(me) == Administrator
     AdminController -> UserModel : userList=getOnLoanUserList()
     activate UserModel
-
-    loop len(userList)
-        UserModel -> User : isLended=isLended(): bool
-        activate User
-        alt isLended == true
-            UserModel -> UserModel : getUser(id): User
-        else
-        end
-        UserModel <<-- User
-        deactivate User
-    end
 
     AdminController <<-- UserModel
     deactivate UserModel
@@ -543,7 +535,7 @@ activate Client
 Client -->> BookReservationController
 deactivate Client
 
-BookReservationController -> BookModel : reservationBook(userId, bookId)
+BookReservationController -> BookModel : isOk=reservationBook(userId, bookId): Bool
 
 activate BookModel
 BookModel -> BookModel : getBook(bookId)
@@ -569,27 +561,29 @@ alt numReservation <= 3
     BookModel <<-- Book
     deactivate Book
 
-    BookReservationController <<-- BookModel
-
-    BookReservationController ->> BookReservationView : moveReservedPage()
-    activate BookReservationView
-    BookReservationController <<-- BookReservationView
-    deactivate BookReservationView
+    BookReservationController <<-- BookModel: true
 else
     BookModel -> Book : unlock()
     activate Book
     BookModel <<-- Book
     deactivate Book
     
-    BookReservationController <<-- BookModel
+    BookReservationController <<-- BookModel: false
+end
+deactivate BookModel
 
+alt isOk == true
+    BookReservationController ->> BookReservationView : moveReservedPage()
+    activate BookReservationView
+    BookReservationController <<-- BookReservationView
+    deactivate BookReservationView
+else
     BookReservationController ->> BookReservationView : showReservationErrorMessage()
     activate BookReservationView
     BookReservationController <<-- BookReservationView
     deactivate BookReservationView
 end
 
-deactivate BookModel
 
 user <<-- BookReservationController
 deactivate BookReservationController
@@ -609,6 +603,7 @@ participant BookSearchController
 participant BookModel
 participant BookSearchView
 participant Book
+participant String
 
 user -> BookSearchController : onClickSearch(query)
 activate BookSearchController
@@ -621,11 +616,13 @@ loop len(bookList)
     BookModel <<-- Book 
     deactivate Book
 
-    alt title.contains(query) == true
-        BookModel -> Book : getBook(id)
-        activate Book
-        BookModel <<-- Book 
-        deactivate Book
+    BookModel -> String : isMatch=contains(query): Bool
+    activate String
+    BookModel <<-- String
+    deactivate String
+
+    alt isMatch == true
+        BookModel -> BookModel : matchedBookList=append(book): Book[]
     else
     end
 end

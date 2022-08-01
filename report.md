@@ -1,7 +1,7 @@
 ---
 title: "ソフトウェア工学特論Ⅲレポート"
 author: "FM22109 田中 湧大"
-date: "2022年08月01日"
+date: "2022年08月02日"
 subject: "Markdown"
 fontsize: 10.5pt
 listingTitle: "コード"
@@ -16,6 +16,10 @@ header-includes:
 
 \renewcommand{\figurename}{図}
 \renewcommand{\tablename}{表}
+
+# 概要
+
+本レポートは，設計したシステムの図を示す．
 
 # ユースケース図
 
@@ -58,3 +62,7 @@ header-includes:
 ## 本の貸出を予約する
 
 ![本の貸出を予約する](out/sequence/本の貸出を予約する.png){#fig:book}
+
+## 本を検索する
+
+![本を検索する](out/sequence/本を検索する.png){#fig:search}

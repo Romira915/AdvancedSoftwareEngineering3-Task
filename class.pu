@@ -107,7 +107,6 @@ package model {
         -getUser(id): User
         +userRegister(name, password): User
         +login(id, password): Result<User, _>
-        +getMe(): User
         +getUserList()
         +getOnLoanUserList()
         +setLendBook(userId, bookId)
@@ -117,10 +116,11 @@ package model {
 
     class BookModel {
         -bookList: Book[]
+        -append(book): Book[]
         +lend(userId): Result<UUID>
         +getBook(bookId)
         +returnBook(bookId)
-        +reservationBook(userId, bookId)
+        +reservationBook(userId, bookId): Bool
         +searchBook(query): Book[]
     }
 
@@ -148,7 +148,7 @@ package entity {
         -reservationQueue: Queue<UUID>
         +lock()
         +unlock()
-        +canLend()
+        +canLend(): Bool
         +setLendByUser(userId)
         +returnBook()
         +reservation(userId)
@@ -158,6 +158,7 @@ package entity {
 
     entity Room {
         -id: UUID
+        -roomName: String
         -reservingUser: Option<UUID>
         +lock()
         +unlock()
@@ -212,6 +213,10 @@ package std {
         None
         Some(T)
     }
+
+    class String {
+        +contains(query): Bool
+    }
 }
 
 package localStorage {
@@ -254,16 +259,19 @@ Client <--x RoomReservationController #line:yellow;line.bold;text:yellow
 Client <--x AdminController #line:yellow;line.bold;text:yellow
 Client <--x BookReservationController #line:yellow;line.bold;text:yellow
 
-User "*" x--- "1" EncryptionService
-User "*" x--- "1" UUID
-Book "*" x--- "1" UUID
-Room "*" x--- "1" UUID
+User "*" x---> "1" EncryptionService
+User "*" x---> "1" UUID
+Book "*" x---> "1" UUID
+Room "*" x---> "1" UUID
 
-Room ..> RoomStatus : <<create>>
-UserModel ..> Result : <<create>>
-Client ..> Option : <<create>>
-Book ..> Option : <<create>>
-Room ..> Option : <<create>>
+Room .> RoomStatus : <<create>>
+UserModel ..> Result #line:yellow;line.bold;text:yellow : <<create>>
+Client ..> Option #line:yellow;line.bold;text:yellow : <<create>>
+Book ..> Option #line:yellow;line.bold;text:yellow : <<create>>
+Room ..> Option #line:yellow;line.bold;text:yellow : <<create>>
+User ..> String #line:yellow;line.bold;text:yellow : <<create>>
+Book ..> String #line:yellow;line.bold;text:yellow : <<create>>
+Room ..> String #line:yellow;line.bold;text:yellow : <<create>>
 BookModel -- BarcodeReader
 
 @enduml
